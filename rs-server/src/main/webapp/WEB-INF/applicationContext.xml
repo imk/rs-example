@@ -4,10 +4,22 @@
   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
                       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
                       http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd">
+
   <import resource="classpath:META-INF/cxf/cxf.xml" />
   <import resource="classpath:META-INF/cxf/cxf-servlet.xml" />
+
   <context:component-scan base-package="de.wdrmg.digital.example" />
   <context:annotation-config />
+
+  <context:component-scan base-package="de.wdr.utils.properties.listener" />
+  <context:component-scan base-package="de.wdr.oauth.dataprovider.bean" />
+  <import resource="classpath:/spring/spring-reloadableProperties.xml" />
+
+  <bean id="oauthProvider" class="de.wdr.oauth.dataprovider.DBOAuthDataProvider" />
+  <bean id="fallBackOAuthProvider" class="de.wdr.oauth.dataprovider.FallbackOAuthDataProvider">
+    <property name="dataProvider" ref="oauthProvider" />
+  </bean>
+
   <jaxrs:server id="example-rs" address="/">
     <jaxrs:serviceBeans>
       <bean class="de.wdrmg.digital.example.rs.impl.ExampleResourceController" />
@@ -17,7 +29,26 @@
       <entry key="xml" value="application/xml" />
     </jaxrs:extensionMappings>
     <jaxrs:providers>
-      <bean class="de.wdrmg.digital.example.rs.impl.NotFoundMapper"/>
+      <bean class="de.wdrmg.digital.example.rs.impl.NotFoundMapper" />
+      <bean class="de.wdrmg.digital.example.rs.impl.AccessDeniedMapper" />
+    </jaxrs:providers>
+  </jaxrs:server>
+
+  <jaxrs:server id="example-rs-oauth" address="/secure">
+    <jaxrs:serviceBeans>
+      <bean class="de.wdrmg.digital.example.rs.impl.ExampleResourceController" />
+    </jaxrs:serviceBeans>
+    <jaxrs:extensionMappings>
+      <entry key="json" value="application/json" />
+      <entry key="xml" value="application/xml" />
+    </jaxrs:extensionMappings>
+    <jaxrs:providers>
+      <bean class="de.wdrmg.digital.example.rs.impl.NotFoundMapper" />
+      <bean class="de.wdrmg.digital.example.rs.impl.AccessDeniedMapper" />
+      <bean class="org.apache.cxf.rs.security.oauth.filters.OAuthRequestFilter">
+        <property name="dataProvider" ref="fallBackOAuthProvider" />
+      </bean>
+      <bean class="de.wdrmg.digital.example.rs.impl.AuthFilter" />
     </jaxrs:providers>
   </jaxrs:server>
 </beans>

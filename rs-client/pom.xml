@@ -18,5 +18,15 @@
       <artifactId>cxf-rt-rs-client</artifactId>
       <version>${cxf.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-rs-security-oauth</artifactId>
+      <version>${cxf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>de.wdr.oauth</groupId>
+      <artifactId>OAuthClientManagerUtil</artifactId>
+      <version>1.1</version>
+    </dependency>
   </dependencies>
 </project>

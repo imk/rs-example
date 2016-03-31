@@ -9,6 +9,7 @@ import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.GenericType;
@@ -19,33 +20,45 @@ public class ExampleRsClient {
   private long timeout;
   private String proxyHost;
   private int proxyPort;
-
-  public ExampleRsClient() {}
+  private final OAuthClientRequestFilter authFilter;
 
   public ExampleRsClient(final String baseUrl) {
-    this(baseUrl, 0, null, 0);
+    this(baseUrl, 0, null, 0, null, null, null, null);
   }
 
-  public ExampleRsClient(final String baseUrl, final long timeout) {
-    this(baseUrl, timeout, null, 0);
+  public ExampleRsClient(final String baseUrl, final String oauthServerUrl, final String oauthKey,
+      final String oauthSecret, final String callbackURL) {
+    this(baseUrl, 0, null, 0, oauthServerUrl, oauthKey, oauthSecret, callbackURL);
   }
 
-  public ExampleRsClient(final String baseUrl, final String proxyHost, final int proxyPort) {
-    this(baseUrl, 0, proxyHost, proxyPort);
+  public ExampleRsClient(final String baseUrl, final long timeout, final String oauthServerUrl, final String oauthKey,
+      final String oauthSecret, final String callbackURL) {
+    this(baseUrl, timeout, null, 0, oauthServerUrl, oauthKey, oauthSecret, callbackURL);
   }
 
-  public ExampleRsClient(final String baseUrl, final long timeout, final String proxyHost, final int proxyPort) {
+  public ExampleRsClient(final String baseUrl, final String proxyHost, final int proxyPort, final String oauthServerUrl,
+      final String oauthKey, final String oauthSecret, final String callbackURL) {
+    this(baseUrl, 0, proxyHost, proxyPort, oauthServerUrl, oauthKey, oauthSecret, callbackURL);
+  }
+
+  public ExampleRsClient(final String baseUrl, final long timeout, final String proxyHost, final int proxyPort,
+      final String oauthServerUrl, final String oauthKey, final String oauthSecret, final String callbackURL) {
     setBaseUrl(baseUrl);
     setTimeout(timeout);
     setProxyHost(proxyHost);
     setProxyPort(proxyPort);
+    if (oauthServerUrl != null && oauthKey != null && oauthSecret != null && callbackURL != null) {
+      authFilter = new OAuthClientRequestFilter(oauthServerUrl, oauthKey, oauthSecret, callbackURL);
+    } else {
+      authFilter = null;
+    }
   }
 
   public String getBaseUrl() {
     return baseUrl;
   }
 
-  public void setBaseUrl(String baseUrl) {
+  public void setBaseUrl(final String baseUrl) {
     this.baseUrl = baseUrl;
   }
 
@@ -53,7 +66,7 @@ public class ExampleRsClient {
     return proxyHost;
   }
 
-  public void setProxyHost(String proxyHost) {
+  public void setProxyHost(final String proxyHost) {
     this.proxyHost = proxyHost;
   }
 
@@ -61,7 +74,7 @@ public class ExampleRsClient {
     return proxyPort;
   }
 
-  public void setProxyPort(int proxyPort) {
+  public void setProxyPort(final int proxyPort) {
     this.proxyPort = proxyPort;
   }
 
@@ -69,7 +82,7 @@ public class ExampleRsClient {
     return timeout;
   }
 
-  public void setTimeout(long timeout) {
+  public void setTimeout(final long timeout) {
     this.timeout = timeout;
   }
 
@@ -78,7 +91,11 @@ public class ExampleRsClient {
   }
 
   private <T> T createClient(final Class<T> klazz) {
-    final T proxy = JAXRSClientFactory.create(baseUrl, klazz);
+    final List<Object> providers = new ArrayList<>();
+    if (authFilter != null) {
+      providers.add(authFilter);
+    }
+    final T proxy = JAXRSClientFactory.create(baseUrl, klazz, providers);
     final Client client = WebClient.client(proxy);
     client.accept(MediaType.APPLICATION_XML_TYPE).header("Cache-Control", "maxAge=60").header("Pragma", "maxAge=60");
     final boolean useProxy = proxyHost != null && proxyPort > 0;
@@ -109,8 +126,18 @@ public class ExampleRsClient {
     // Typ muss im Client explizit gesetzt werden
     System.out.println(exampleClient.indexResponse().readEntity(new GenericType<List<Example>>() {}));
     System.out.println(exampleClient.getResponse("a").readEntity(Example.class));
+    final ExampleRsClient clientSecure =
+        new ExampleRsClient("http://localhost:8080/rs-server/secure/", "http://localhost:8080/OAuthServer/oauth",
+            "aiv6-eiqu-aiGh-8wie", "Hu6quioToongiet", "http://localhost:8080/rs-example/");
+    final ExampleResource exampleClientSecure = clientSecure.getExampleClient();
+    // Typ durch API vorgegeben
+    System.out.println(exampleClientSecure.index().getElements());
+    System.out.println(exampleClientSecure.get("a"));
+    // Typ muss im Client explizit gesetzt werden
+    System.out.println(exampleClientSecure.indexResponse().readEntity(new GenericType<List<Example>>() {}));
+    System.out.println(exampleClientSecure.getResponse("a").readEntity(Example.class));
     // Generic Entity Type gesetzt, funktioniert problemlos im Marshalling, führt default zur Exception bei
     // Unmarshalling
-    System.out.println(exampleClient.indexGeneric().getEntity());
+    // System.out.println(exampleClient.indexGeneric().getEntity());
   }
 }

@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -51,5 +52,4 @@ public class ExampleResourceController implements ExampleResource {
   public GenericEntity<List<Example>> indexGeneric() {
     return new GenericEntity<List<Example>>(new ArrayList<>(ELEMENTS.values())) {};
   }
-
 }

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="1.0" xmlns="http://java.sun.com/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/persistence     http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd">
+  <persistence-unit name="OAuthPU" transaction-type="RESOURCE_LOCAL">
+    <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+    <class>de.wdr.oauth.persistence.beans.RequestTokenBean</class>
+    <class>de.wdr.oauth.persistence.beans.TokenBean</class>
+    <class>de.wdr.oauth.persistence.beans.RoleBean</class>
+    <class>de.wdr.oauth.persistence.beans.UserSubjectBean</class>
+    <class>de.wdr.oauth.persistence.beans.WebserviceBean</class>
+    <class>de.wdr.oauth.persistence.beans.AccessTokenBean</class>
+    <class>de.wdr.oauth.persistence.beans.ClientBean</class>
+    <class>de.wdr.oauth.persistence.beans.ClientWebserviceLimitationBean</class>
+    <class>de.wdr.oauth.persistence.beans.ClientWebserviceRequestCounterBean</class>
+    <properties>
+      <property name="hibernate.connection.driver_class" value="com.mysql.jdbc.Driver"/>
+      <property name="hibernate.connection.url" value="jdbc:mysql://localhost:3306/oauth"/>
+      <property name="hibernate.connection.username" value="oauth"/>
+      <property name="hibernate.connection.password" value="ohb4Utoop4go"/>
+      <property name="hibernate.hbm2ddl.auto" value="validate"/>
+      <property name="hibernate.show_sql" value="false"/>
+      <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL5Dialect"/>
+      <!--property name="hibernate.c3p0.min_size" value="1"/>
+      <property name="hibernate.c3p0.max_size" value="3"/>
+      <property name="hibernate.c3p0.timeout" value="30"/>
+      <property name="hibernate.c3p0.max_statements" value="50"/>
+      <property name="hibernate.c3p0.idle_test_period" value="300"/-->
+    </properties>
+  </persistence-unit>
+</persistence>
